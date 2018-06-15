@@ -20,10 +20,11 @@ class Model(object):
 
 
 class Actor(Model):
-    def __init__(self, nb_actions, name='actor', layer_norm=True):
+    def __init__(self, nb_actions, name='actor', layer_norm=True, hidden_size = 64):
         super(Actor, self).__init__(name=name)
         self.nb_actions = nb_actions
         self.layer_norm = layer_norm
+        self.hidden_size = hidden_size
 
     def __call__(self, obs, reuse=False):
         with tf.variable_scope(self.name) as scope:
@@ -31,12 +32,12 @@ class Actor(Model):
                 scope.reuse_variables()
 
             x = obs
-            x = tf.layers.dense(x, 64)
+            x = tf.layers.dense(x, self.hidden_size)
             if self.layer_norm:
                 x = tc.layers.layer_norm(x, center=True, scale=True)
             x = tf.nn.relu(x)
             
-            x = tf.layers.dense(x, 64)
+            x = tf.layers.dense(x, self.hidden_size)
             if self.layer_norm:
                 x = tc.layers.layer_norm(x, center=True, scale=True)
             x = tf.nn.relu(x)
@@ -47,9 +48,10 @@ class Actor(Model):
 
 
 class Critic(Model):
-    def __init__(self, name='critic', layer_norm=True):
+    def __init__(self, name='critic', layer_norm=True, hidden_size=64):
         super(Critic, self).__init__(name=name)
         self.layer_norm = layer_norm
+        self.hidden_size = hidden_size
 
     def __call__(self, obs, action, reuse=False):
         with tf.variable_scope(self.name) as scope:
@@ -57,13 +59,13 @@ class Critic(Model):
                 scope.reuse_variables()
 
             x = obs
-            x = tf.layers.dense(x, 64)
+            x = tf.layers.dense(x, self.hidden_size)
             if self.layer_norm:
                 x = tc.layers.layer_norm(x, center=True, scale=True)
             x = tf.nn.relu(x)
 
             x = tf.concat([x, action], axis=-1)
-            x = tf.layers.dense(x, 64)
+            x = tf.layers.dense(x, self.hidden_size)
             if self.layer_norm:
                 x = tc.layers.layer_norm(x, center=True, scale=True)
             x = tf.nn.relu(x)
